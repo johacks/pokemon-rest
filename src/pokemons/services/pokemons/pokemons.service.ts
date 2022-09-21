@@ -5,6 +5,17 @@ import {
   Pokemon,
   PokemonDocument,
 } from '../../schemas/pokemons/pokemons.schema';
+import { PaginationParams } from '../../../utils/pagination';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+
+export class FilterParams extends PaginationParams {
+  @IsOptional()
+  @Type(() => String)
+  @IsString()
+  @IsNotEmpty()
+  name?: string;
+}
 
 @Injectable()
 export class PokemonsService {
@@ -13,12 +24,22 @@ export class PokemonsService {
     private readonly pokemonModel: Model<PokemonDocument>,
   ) {}
 
-  async findAll(skip = 0, limit = Infinity): Promise<Pokemon[]> {
-    return this.pokemonModel
+  async findAll(filterParams: FilterParams): Promise<Pokemon[]> {
+    /*
+     * Returns a collection even though name is unique, but at least adjusts
+     * better to REST standards than something like "pokemons/by/name/<thename>"
+     * Both solutions can be tough for the client in different ways, but I would
+     * prefer this one as it makes the API consistent with a well-known standard
+     * */
+    if (filterParams.name) {
+      return this.pokemonModel.find({ name: filterParams.name });
+    }
+    const q = this.pokemonModel
       .find()
       .sort({ pokemonId: 1 })
-      .skip(skip)
-      .limit(limit);
+      .skip(filterParams.skip ?? 0)
+      .limit(filterParams.limit ?? Infinity);
+    return q.exec();
   }
 
   async findOne(pokemonId: number): Promise<Pokemon> {
