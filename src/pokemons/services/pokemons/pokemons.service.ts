@@ -13,8 +13,12 @@ export class PokemonsService {
     private readonly pokemonModel: Model<PokemonDocument>,
   ) {}
 
-  async findAll(): Promise<Pokemon[]> {
-    return this.pokemonModel.find().exec();
+  async findAll(skip = 0, limit = Infinity): Promise<Pokemon[]> {
+    return this.pokemonModel
+      .find()
+      .sort({ pokemonId: 1 })
+      .skip(skip)
+      .limit(limit);
   }
 
   async findOne(pokemonId: number): Promise<Pokemon> {
