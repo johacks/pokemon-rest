@@ -93,3 +93,97 @@ for (const pokemonClass of pokemonClasses) {
     ],
   );
 }
+
+// Move attacks to a separate collection. The goal is consistency in changes
+// to attack properties across all pokemon with that attack. Also helps
+// with possible future attack endpoints
+db.pokemons.aggregate([
+  // Get all attacks in a single field
+  {
+    $set: { attack: { $concatArrays: ['$attacks.fast', '$attacks.special'] } },
+  },
+  // Get all attacks as an array
+  {
+    $unwind: '$attack',
+  },
+  {
+    $replaceWith: '$attack',
+  },
+  // Remove duplicates
+  {
+    $group: {
+      _id: '$name',
+      name: { $first: '$name' },
+      type: { $first: '$type' },
+      damage: { $first: '$damage' },
+    },
+  },
+  // Reset id
+  {
+    $project: { _id: 0 },
+  },
+]);
+
+// Make attacks a reference to object in attack collection
+db.pokemons.aggregate([
+  {
+    $lookup: {
+      from: 'attacks',
+      localField: 'attacks.fast.name',
+      foreignField: 'name',
+      as: 'fastAttackInfo',
+    },
+  },
+  {
+    $lookup: {
+      from: 'attacks',
+      localField: 'attacks.special.name',
+      foreignField: 'name',
+      as: 'specialAttackInfo',
+    },
+  },
+  {
+    $set: {
+      'attacks.fast': '$fastAttackInfo._id',
+      'attacks.special': '$specialAttackInfo._id',
+    },
+  },
+  {
+    $unset: ['specialAttackInfo', 'fastAttackInfo'],
+  },
+  {
+    $out: {db: "pokemon-db", coll: "pokemons"}
+  }
+]);
+
+// Make evolutions a reference to an existing pokemon, helps mantain consistency
+db.pokemons.aggregate([
+  {
+    $lookup: {
+      from: 'pokemons',
+      localField: 'previousEvolutions.name',
+      foreignField: 'name',
+      as: 'prevPokemonInfo',
+    },
+  },
+  {
+    $lookup: {
+      from: 'pokemons',
+      localField: 'evolutions.name',
+      foreignField: 'name',
+      as: 'nextPokemonInfo',
+    },
+  },
+  {
+    $set: {
+      previousEvolutions: '$prevPokemonInfo._id',
+      evolutions: '$nextPokemonInfo._id',
+    },
+  },
+  {
+    $unset: ['prevPokemonInfo', 'nextPokemonInfo'],
+  },
+  {
+    $out: {db: "pokemon-db", coll: "pokemons"}
+  }
+]);

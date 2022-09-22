@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import * as mongoose from 'mongoose';
 
 export type PokemonDocument = Pokemon & Document;
 
@@ -23,7 +23,7 @@ export enum PokemonType {
   STEEL = 'Steel',
   WATER = 'Water',
 }
-export const PokemonTypes = Object.values(PokemonType)
+export const PokemonTypes = Object.values(PokemonType);
 
 export enum Region {
   ANZ = 'Australia, New Zealand',
@@ -37,40 +37,29 @@ export enum PokemonClass {
   LEGENDARY = 'LEGENDARY',
 }
 
-// Brief information of some Pokemon
-export type PokemonBrief = { pokemonId: number; name: string };
-const PokemonBriefSchema = {
-  pokemonId: { type: Number },
-  name: { type: String },
-};
-
 // Evolution requirement of Pokemon
 export type EvolutionRequirements = { amount: number; name: string };
-const EvolutionRequirementsSchema = {
+const EvolutionRequirementsDescriptor = {
   amount: { amount: Number },
   name: { type: String },
 };
 
-// Pokemon attacks
-export type Attack = {
+// Attacks have their own collection
+@Schema()
+export class Attack {
+  @Prop({ required: true })
   name: string;
+
+  @Prop({ type: String, enum: PokemonType, required: true })
   type: PokemonType;
+
+  @Prop({ required: true })
   damage: number;
-};
-const AttackSchema = {
-  name: { type: String },
-  type: { type: String },
-  damage: { type: Number },
-};
-
-export type Attacks = {
-  fast: Attack[];
-  special: Attack[];
-};
-
-const AttacksSchema = {
-  fast: { type: [AttackSchema] },
-  special: { type: [AttackSchema] },
+}
+export type Attacks = { fast: Attack[]; special: Attack[] };
+const AttacksDescriptor = {
+  fast: { type: [mongoose.Schema.Types.ObjectId], ref: 'Attack' },
+  special: { type: [mongoose.Schema.Types.ObjectId], ref: 'Attack' },
 };
 
 // Some validations are set, although not necessary yet, as pokemon are read-only
@@ -110,13 +99,13 @@ export class Pokemon {
   @Prop({ required: true })
   fleeRate: number;
 
-  @Prop({ type: [PokemonBriefSchema] })
-  previousEvolutions: PokemonBrief[];
+  @Prop({ type: [mongoose.Schema.Types.ObjectId], ref: 'Pokemon' })
+  previousEvolutions: Pokemon[];
 
-  @Prop({ type: [PokemonBriefSchema] })
-  evolutions: PokemonBrief[];
+  @Prop({ type: [mongoose.Schema.Types.ObjectId], ref: 'Pokemon' })
+  evolutions: Pokemon[];
 
-  @Prop({ type: EvolutionRequirementsSchema })
+  @Prop({ type: EvolutionRequirementsDescriptor })
   evolutionRequirements: EvolutionRequirements;
 
   @Prop({ required: true })
@@ -125,7 +114,7 @@ export class Pokemon {
   @Prop({ required: true })
   maxHP: number;
 
-  @Prop({ type: AttacksSchema, required: true })
+  @Prop({ type: AttacksDescriptor, required: true })
   attacks: Attacks;
 
   @Prop()
@@ -135,4 +124,5 @@ export class Pokemon {
   pokemonClass: PokemonClass;
 }
 
-export const PokemonsSchema = SchemaFactory.createForClass(Pokemon);
+export const PokemonSchema = SchemaFactory.createForClass(Pokemon);
+export const AttackSchema = SchemaFactory.createForClass(Attack);
