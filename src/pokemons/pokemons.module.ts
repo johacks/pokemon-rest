@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { PokemonsController } from './controllers/pokemons/pokemons.controller';
-import { PokemonsService } from './services/pokemons/pokemons.service';
+import { PokemonsController } from './controllers/pokemons.controller';
+import { PokemonsService } from './services/pokemons.service';
 import {
   Attack,
   AttackSchema,
   Pokemon,
   PokemonSchema,
-} from './schemas/pokemons/pokemonSchema';
+} from './schemas/pokemons.schema';
 
 @Module({
   imports: [
@@ -18,5 +18,6 @@ import {
   ],
   controllers: [PokemonsController],
   providers: [PokemonsService],
+  exports: [PokemonsService, MongooseModule],
 })
 export class PokemonsModule {}

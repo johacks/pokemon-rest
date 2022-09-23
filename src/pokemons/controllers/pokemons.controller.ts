@@ -9,16 +9,20 @@ import {
 import {
   FilterParams,
   PokemonsService,
-} from '../../services/pokemons/pokemons.service';
-import { Pokemon } from '../../schemas/pokemons/pokemonSchema';
+} from '../services/pokemons.service';
+import {
+  Pokemon,
+  PokemonType,
+  PokemonTypes,
+} from '../schemas/pokemons.schema';
 import { IsString, Matches } from 'class-validator';
 
 // We allow an id and name identification, e.g. id::001 or name::bulbasaur
-const NAME_HEADER = 'name::';
-const ID_HEADER = 'id::';
-const POKEMON_ID_PATTERN = `${NAME_HEADER}|${ID_HEADER}[0-9]+`;
+export const NAME_HEADER = 'name::';
+export const ID_HEADER = 'id::';
+export const POKEMON_ID_REGEX = new RegExp(`${NAME_HEADER}|${ID_HEADER}[0-9]+`);
 export class PokemonPublicId {
-  @Matches(new RegExp(POKEMON_ID_PATTERN))
+  @Matches(new RegExp(POKEMON_ID_REGEX))
   @IsString()
   id: string;
 }
@@ -34,21 +38,16 @@ export class PokemonsController {
     return this.pokemonsService.findAll(filterParams);
   }
 
+  @Get('/types/')
+  async getTypes(): Promise<PokemonType[]> {
+    return PokemonTypes;
+  }
+
   // Public id may be name::<name> or id::<number>
   @Get(':id')
   async findOne(@Param() id: PokemonPublicId): Promise<Pokemon> {
-    const pid = id.id;
-    let ret = undefined;
-    if (pid.startsWith(NAME_HEADER)) {
-      ret = await this.pokemonsService.findOneByName(
-        pid.substring(NAME_HEADER.length),
-      );
-    } else {
-      ret = await this.pokemonsService.findOneById(
-        pid.substring(ID_HEADER.length),
-      );
-    }
-    if (ret === undefined || ret === null) throw new NotFoundException();
+    const ret = await this.pokemonsService.findOne(id.id);
+    if (!ret) throw new NotFoundException();
     return ret;
   }
 }

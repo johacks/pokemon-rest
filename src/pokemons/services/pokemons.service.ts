@@ -6,19 +6,18 @@ import {
   PokemonDocument,
   PokemonType,
   PokemonTypes,
-} from '../../schemas/pokemons/pokemonSchema';
-import { PaginationParams } from '../../../utils/pagination';
+} from '../schemas/pokemons.schema';
+import { PaginationParams } from '../../utils/pagination';
 import {
   ArrayMaxSize,
   ArrayMinSize,
   IsArray,
-  IsEnum,
   IsIn,
   IsNumber,
   IsOptional,
-  IsString,
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
+import { ID_HEADER, NAME_HEADER } from '../controllers/pokemons.controller';
 
 // Filters for pokemon search
 export class FilterParams extends PaginationParams {
@@ -104,7 +103,7 @@ export class PokemonsService {
   ) {}
 
   // Populate pokemon nested fields and select which fields to include
-  private static transformPokemonQuery(q) {
+  public static transformPokemonQuery(q) {
     for (const populateOptions of pokemonPopulatedFields) {
       q.populate(populateOptions);
     }
@@ -151,13 +150,20 @@ export class PokemonsService {
     return PokemonsService.transformPokemonQuery(q).exec();
   }
 
-  // Get one pokemon using unique identifier
-  async findOneById(pokemonId: string): Promise<Pokemon> {
-    const q = this.pokemonModel.findOne({ pokemonId: parseInt(pokemonId) });
+  async findOne(pokemonPublicId: string): Promise<Pokemon> {
+    const q = this.pokemonModel.find(
+      PokemonsService.makePokemonPublicIdFilter(pokemonPublicId),
+    );
     return PokemonsService.transformPokemonQuery(q).exec();
   }
-  async findOneByName(name: string): Promise<Pokemon> {
-    const q = this.pokemonModel.findOne({ name: name });
-    return PokemonsService.transformPokemonQuery(q).exec();
+
+  public static makePokemonPublicIdFilter(pokemonPublicId: string) {
+    if (pokemonPublicId.startsWith(NAME_HEADER)) {
+      return { name: pokemonPublicId.substring(NAME_HEADER.length) };
+    } else {
+      return {
+        pokemonId: parseInt(pokemonPublicId.substring(ID_HEADER.length)),
+      };
+    }
   }
 }
