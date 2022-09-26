@@ -1,7 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import * as mongoose from 'mongoose';
+import { Document } from 'mongoose';
 
-export type PokemonDocument = Pokemon & Document;
+export type PokemonDocument = Pokemon &
+  Document & { _id: mongoose.Schema.Types.ObjectId };
 
 export enum PokemonType {
   BUG = 'Bug',
@@ -56,14 +58,13 @@ export class Attack {
   @Prop({ required: true })
   damage: number;
 }
+
 export type Attacks = { fast: Attack[]; special: Attack[] };
 const AttacksDescriptor = {
   fast: { type: [mongoose.Schema.Types.ObjectId], ref: 'Attack' },
   special: { type: [mongoose.Schema.Types.ObjectId], ref: 'Attack' },
 };
 
-// Some validations are set, although not necessary yet, as pokemon are read-only
-// They are set eitherway to be consistent with the database
 @Schema()
 export class Pokemon {
   @Prop({ required: true })

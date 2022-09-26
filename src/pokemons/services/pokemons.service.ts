@@ -103,7 +103,7 @@ export class PokemonsService {
   ) {}
 
   // Populate pokemon nested fields and select which fields to include
-  public static transformPokemonQuery(q) {
+  public static populateCleanQuery(q) {
     for (const populateOptions of pokemonPopulatedFields) {
       q.populate(populateOptions);
     }
@@ -147,17 +147,17 @@ export class PokemonsService {
     q.sort({ pokemonId: 1 })
       .skip(filterParams.skip ?? 0)
       .limit(filterParams.limit ?? Infinity);
-    return PokemonsService.transformPokemonQuery(q).exec();
+    return PokemonsService.populateCleanQuery(q).exec();
   }
 
   async findOne(pokemonPublicId: string): Promise<Pokemon> {
     const q = this.pokemonModel.find(
-      PokemonsService.makePokemonPublicIdFilter(pokemonPublicId),
+      PokemonsService.makeFilterByPublicId(pokemonPublicId),
     );
-    return PokemonsService.transformPokemonQuery(q).exec();
+    return PokemonsService.populateCleanQuery(q).exec();
   }
 
-  public static makePokemonPublicIdFilter(pokemonPublicId: string) {
+  public static makeFilterByPublicId(pokemonPublicId: string) {
     if (pokemonPublicId.startsWith(NAME_HEADER)) {
       return { name: pokemonPublicId.substring(NAME_HEADER.length) };
     } else {

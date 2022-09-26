@@ -2,19 +2,32 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
+  Get,
   NotFoundException,
   Param,
   Post,
 } from '@nestjs/common';
-import { PokemonPublicId } from '../../pokemons/controllers/pokemons.controller';
+import {
+  POKEMON_ID_REGEX,
+  PokemonPublicId,
+} from '../../pokemons/controllers/pokemons.controller';
 import {
   FavoritesService,
   FavoritesServiceErrors,
 } from '../services/favorites.service';
-import { User } from '../schemas/users.schema';
-import { Pokemon } from "../../pokemons/schemas/pokemons.schema";
+import { Pokemon } from '../../pokemons/schemas/pokemons.schema';
+import { IsString, Matches } from 'class-validator';
 
-class CreateFavoriteDto extends PokemonPublicId {}
+// URL parameters of delete endpoint
+class DeleteParams {
+  @Matches(POKEMON_ID_REGEX)
+  @IsString()
+  pokemonId: string;
+
+  @IsString()
+  userId: string;
+}
 
 @Controller('users/:userId/favorites')
 export class FavoritesController {
@@ -23,19 +36,51 @@ export class FavoritesController {
   @Post('/')
   async create(
     @Param('userId') userId: string,
-    @Body() createFavoriteDto: CreateFavoriteDto,
+    @Body() createFavoriteDto: PokemonPublicId,
   ): Promise<Pokemon[]> {
-    const ret = await this.favoritesService.create(
+    const { pokemons, error } = await this.favoritesService.create(
       userId,
       createFavoriteDto.id,
     );
-    if (ret === FavoritesServiceErrors.USER_NOT_FOUND) {
+    if (pokemons) return pokemons;
+    if (error === FavoritesServiceErrors.USER_NOT_FOUND) {
       throw new NotFoundException('User not found');
-    } else if (ret === FavoritesServiceErrors.POKEMON_NOT_FOUND) {
+    } else if (error === FavoritesServiceErrors.POKEMON_NOT_FOUND) {
       throw new NotFoundException('Pokemon not found');
-    } else if (ret === FavoritesServiceErrors.DUPLICATE_POKEMON) {
+    } else if (error === FavoritesServiceErrors.DUPLICATE_POKEMON) {
       throw new BadRequestException('Duplicate favorite');
+    } else {
+      return [];
     }
-    return ret;
+  }
+
+  @Delete('/:pokemonId')
+  async delete(@Param() deleteParams: DeleteParams): Promise<Pokemon[]> {
+    const { pokemons, error } = await this.favoritesService.delete(
+      deleteParams.userId,
+      deleteParams.pokemonId,
+    );
+    if (pokemons) return pokemons;
+    if (error === FavoritesServiceErrors.USER_NOT_FOUND) {
+      throw new NotFoundException('User not found');
+    } else if (error === FavoritesServiceErrors.POKEMON_NOT_FOUND) {
+      throw new NotFoundException('Pokemon not found');
+    } else if (error === FavoritesServiceErrors.POKEMON_NOT_FAVORITE) {
+      throw new BadRequestException('Pokemon not in user favorites');
+    } else {
+      return [];
+    }
+  }
+
+  @Get('/')
+  async findAll(@Param('userId') userId: string): Promise<Pokemon[]> {
+    const { pokemons, error } = await this.favoritesService.findAll(userId);
+
+    if (pokemons) return pokemons;
+    if (error === FavoritesServiceErrors.USER_NOT_FOUND) {
+      throw new NotFoundException('User not found');
+    } else {
+      return [];
+    }
   }
 }
