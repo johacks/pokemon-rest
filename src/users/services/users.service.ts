@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { CreateUserDto } from 'src/users/dto/users.dto';
 import { User, UserDocument } from 'src/users/schemas/users.schema';
 
 @Injectable()
@@ -11,11 +10,13 @@ export class UsersService {
     private readonly userModel: Model<UserDocument>,
   ) {}
 
-  async create(createUserDto: CreateUserDto): Promise<User> {
-    return this.userModel.create(createUserDto);
-  }
-
-  async findAll(): Promise<User[]> {
-    return this.userModel.find().select('-favoritePokemons').exec();
+  // Mock authentication that simply ensures a user exists and returns it
+  // Probable implementation returns at least user id via a JWT authentication
+  async authenticate() {
+    return this.userModel.findOneAndUpdate(
+      { email: 'mockuser@mail.com' },
+      { email: 'mockuser@mail.com' },
+      { new: true, upsert: true },
+    );
   }
 }

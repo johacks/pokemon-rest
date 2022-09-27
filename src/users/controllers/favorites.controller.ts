@@ -4,83 +4,73 @@ import {
   Controller,
   Delete,
   Get,
+  Injectable,
   NotFoundException,
   Param,
   Post,
 } from '@nestjs/common';
 import {
-  POKEMON_ID_REGEX,
-  PokemonPublicId,
-} from '../../pokemons/controllers/pokemons.controller';
-import {
   FavoritesService,
   FavoritesServiceErrors,
 } from '../services/favorites.service';
 import { Pokemon } from '../../pokemons/schemas/pokemons.schema';
-import { IsString, Matches } from 'class-validator';
+import { UsersService } from '../services/users.service';
+import { PokemonPublicId } from '../../pokemons/validators/pokemons.validators';
 
-// URL parameters of delete endpoint
-class DeleteParams {
-  @Matches(POKEMON_ID_REGEX)
-  @IsString()
-  pokemonId: string;
+// Body of create favortie endpoint
+class CreateFavoriteDto extends PokemonPublicId {}
+// URL parameters of delete endpoint, right now
+class DeleteParams extends CreateFavoriteDto {}
 
-  @IsString()
-  userId: string;
-}
-
-@Controller('users/:userId/favorites')
+@Controller('users/favorites')
+@Injectable()
 export class FavoritesController {
-  constructor(private readonly favoritesService: FavoritesService) {}
+  constructor(
+    private readonly favoritesService: FavoritesService,
+    private readonly usersService: UsersService,
+  ) {}
 
-  @Post('/')
-  async create(
-    @Param('userId') userId: string,
-    @Body() createFavoriteDto: PokemonPublicId,
-  ): Promise<Pokemon[]> {
-    const { pokemons, error } = await this.favoritesService.create(
-      userId,
-      createFavoriteDto.id,
-    );
-    if (pokemons) return pokemons;
+  private detectError(error) {
     if (error === FavoritesServiceErrors.USER_NOT_FOUND) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('User no longer exists');
     } else if (error === FavoritesServiceErrors.POKEMON_NOT_FOUND) {
       throw new NotFoundException('Pokemon not found');
     } else if (error === FavoritesServiceErrors.DUPLICATE_POKEMON) {
       throw new BadRequestException('Duplicate favorite');
-    } else {
-      return [];
+    } else if (error === FavoritesServiceErrors.POKEMON_NOT_FAVORITE) {
+      throw new BadRequestException('Pokemon not in user favorites');
     }
   }
 
-  @Delete('/:pokemonId')
-  async delete(@Param() deleteParams: DeleteParams): Promise<Pokemon[]> {
-    const { pokemons, error } = await this.favoritesService.delete(
-      deleteParams.userId,
-      deleteParams.pokemonId,
+  @Post('/')
+  async create(
+    @Body() createFavoriteDto: CreateFavoriteDto,
+  ): Promise<Pokemon[]> {
+    const userId = (await this.usersService.authenticate())._id;
+    const { pokemons, error } = await this.favoritesService.create(
+      userId,
+      createFavoriteDto.id,
     );
-    if (pokemons) return pokemons;
-    if (error === FavoritesServiceErrors.USER_NOT_FOUND) {
-      throw new NotFoundException('User not found');
-    } else if (error === FavoritesServiceErrors.POKEMON_NOT_FOUND) {
-      throw new NotFoundException('Pokemon not found');
-    } else if (error === FavoritesServiceErrors.POKEMON_NOT_FAVORITE) {
-      throw new BadRequestException('Pokemon not in user favorites');
-    } else {
-      return [];
-    }
+    this.detectError(error);
+    return pokemons ?? [];
+  }
+
+  @Delete('/:id')
+  async delete(@Param() deleteParams: DeleteParams): Promise<Pokemon[]> {
+    const userId = (await this.usersService.authenticate())._id;
+    const { pokemons, error } = await this.favoritesService.delete(
+      userId,
+      deleteParams.id,
+    );
+    this.detectError(error);
+    return pokemons ?? [];
   }
 
   @Get('/')
-  async findAll(@Param('userId') userId: string): Promise<Pokemon[]> {
+  async findAll(): Promise<Pokemon[]> {
+    const userId = (await this.usersService.authenticate())._id;
     const { pokemons, error } = await this.favoritesService.findAll(userId);
-
-    if (pokemons) return pokemons;
-    if (error === FavoritesServiceErrors.USER_NOT_FOUND) {
-      throw new NotFoundException('User not found');
-    } else {
-      return [];
-    }
+    this.detectError(error);
+    return pokemons ?? [];
   }
 }

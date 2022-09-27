@@ -17,63 +17,12 @@ import {
   IsOptional,
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
-import { ID_HEADER, NAME_HEADER } from '../controllers/pokemons.controller';
+import { FilterParams } from '../validators/pokemons.validators';
 
-// Filters for pokemon search
-export class FilterParams extends PaginationParams {
-  @IsOptional()
-  @IsArray()
-  @ArrayMinSize(1)
-  @ArrayMaxSize(2)
-  @IsIn(PokemonTypes, { each: true })
-  @Type(() => String)
-  @Transform(({ value }) => value.split(','))
-  types: PokemonType[];
-
-  @IsOptional()
-  @IsArray()
-  @IsIn(PokemonTypes, { each: true })
-  @Type(() => String)
-  @Transform(({ value }) => value.split(','))
-  resistant: PokemonType[];
-
-  @IsOptional()
-  @IsArray()
-  @IsIn(PokemonTypes, { each: true })
-  @Type(() => String)
-  @Transform(({ value }) => value.split(','))
-  weaknesses: PokemonType[];
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  fleeRateLower?: number;
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  fleeRateUpper?: number;
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  maxCPLower?: number;
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  maxCPUpper?: number;
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  maxHPLower?: number;
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  maxHPUpper?: number;
-}
+// We allow an id and name identification, e.g. id::001 or name::bulbasaur
+export const NAME_HEADER = 'name::';
+export const ID_HEADER = 'id::';
+export const POKEMON_ID_REGEX = new RegExp(`${NAME_HEADER}|${ID_HEADER}[0-9]+`);
 
 // We populate the fields but try not to bloat with too much information
 // Client can request details if needed of the embedded entities.

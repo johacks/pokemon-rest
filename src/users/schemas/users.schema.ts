@@ -8,11 +8,8 @@ export type UserDocument = User &
 
 @Schema()
 export class User {
-  @Prop()
-  name: string;
-
-  @Prop({ required: true })
-  username: string;
+  @Prop({ required: true, unique: true })
+  email: string;
 
   @Prop({ type: [mongoose.Schema.Types.ObjectId], ref: 'Pokemon' })
   favoritePokemons: Pokemon[];

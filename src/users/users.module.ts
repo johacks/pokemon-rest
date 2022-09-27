@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { UsersController } from './controllers/users.controller';
 import { UsersService } from './services/users.service';
 import { User, UsersSchema } from './schemas/users.schema';
 import { FavoritesController } from './controllers/favorites.controller';
@@ -12,7 +11,7 @@ import { FavoritesService } from './services/favorites.service';
     PokemonsModule,
     MongooseModule.forFeature([{ name: User.name, schema: UsersSchema }]),
   ],
-  controllers: [UsersController, FavoritesController],
+  controllers: [FavoritesController],
   providers: [UsersService, FavoritesService],
 })
 export class UsersModule {}

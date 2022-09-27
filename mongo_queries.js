@@ -152,8 +152,8 @@ db.pokemons.aggregate([
     $unset: ['specialAttackInfo', 'fastAttackInfo'],
   },
   {
-    $out: {db: "pokemon-db", coll: "pokemons"}
-  }
+    $out: { db: 'pokemon-db', coll: 'pokemons' },
+  },
 ]);
 
 // Make evolutions a reference to an existing pokemon, helps mantain consistency
@@ -184,6 +184,6 @@ db.pokemons.aggregate([
     $unset: ['prevPokemonInfo', 'nextPokemonInfo'],
   },
   {
-    $out: {db: "pokemon-db", coll: "pokemons"}
-  }
+    $out: { db: 'pokemon-db', coll: 'pokemons' },
+  },
 ]);
