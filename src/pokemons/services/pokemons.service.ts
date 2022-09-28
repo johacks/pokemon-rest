@@ -1,23 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import {
-  Pokemon,
-  PokemonDocument,
-  PokemonType,
-  PokemonTypes,
-} from '../schemas/pokemons.schema';
-import { PaginationParams } from '../../utils/pagination';
-import {
-  ArrayMaxSize,
-  ArrayMinSize,
-  IsArray,
-  IsIn,
-  IsNumber,
-  IsOptional,
-} from 'class-validator';
-import { Transform, Type } from 'class-transformer';
-import { FilterParams } from '../validators/pokemons.validators';
+import { Pokemon, PokemonDocument } from 'src/pokemons/schemas/pokemons.schema';
+import { FilterParams } from 'src/pokemons/validators/pokemons.validators';
 
 // We allow an id and name identification, e.g. id::001 or name::bulbasaur
 export const NAME_HEADER = 'name::';
@@ -60,7 +45,9 @@ export class PokemonsService {
   }
 
   // Get list of pokemon applying filters
-  async findAll(filterParams: FilterParams): Promise<Pokemon[]> {
+  async findAll(
+    filterParams: FilterParams,
+  ): Promise<{ count: number; docs: Pokemon[] }> {
     const q = this.pokemonModel.find({
       fleeRate: {
         $gte: filterParams.fleeRateLower ?? -Infinity,
@@ -91,12 +78,12 @@ export class PokemonsService {
     if (filterParams.types) {
       q.find({ types: { $all: filterParams.types } });
     }
-
-    // Simple pagination scheme with skip and limit
-    q.sort({ pokemonId: 1 })
-      .skip(filterParams.skip ?? 0)
-      .limit(filterParams.limit ?? Infinity);
-    return PokemonsService.populateCleanQuery(q).exec();
+    const count = q.model.find().merge(q).countDocuments();
+    q.skip(filterParams.skip).limit(filterParams.limit);
+    return {
+      docs: await PokemonsService.populateCleanQuery(q).exec(),
+      count: await count,
+    };
   }
 
   async findOne(pokemonPublicId: string): Promise<Pokemon> {

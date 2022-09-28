@@ -6,12 +6,16 @@ import {
   Query,
   ValidationPipe,
 } from '@nestjs/common';
-import { PokemonsService } from '../services/pokemons.service';
+import { PokemonsService } from 'src/pokemons/services/pokemons.service';
 import {
   FilterParams,
   PokemonPublicId,
-} from '../validators/pokemons.validators';
-import { Pokemon, PokemonType, PokemonTypes } from '../schemas/pokemons.schema';
+} from 'src/pokemons/validators/pokemons.validators';
+import {
+  Pokemon,
+  PokemonType,
+  PokemonTypes,
+} from 'src/pokemons/schemas/pokemons.schema';
 
 @Controller('pokemons')
 export class PokemonsController {
@@ -20,7 +24,7 @@ export class PokemonsController {
   @Get('/')
   async findAll(
     @Query(new ValidationPipe({ transform: true })) filterParams: FilterParams,
-  ): Promise<Pokemon[]> {
+  ): Promise<{ count: number; docs: Pokemon[] }> {
     return this.pokemonsService.findAll(filterParams);
   }
 

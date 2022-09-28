@@ -2,11 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User, UserDocument } from 'src/users/schemas/users.schema';
-import { PokemonsService } from '../../pokemons/services/pokemons.service';
-import {
-  Pokemon,
-  PokemonDocument,
-} from '../../pokemons/schemas/pokemons.schema';
+import { PokemonsService } from 'src/pokemons/services/pokemons.service';
+import { Pokemon, PokemonDocument } from 'src/pokemons/schemas/pokemons.schema';
 
 export enum FavoritesServiceErrors {
   USER_NOT_FOUND,

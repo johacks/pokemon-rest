@@ -12,10 +12,10 @@ import {
 import {
   FavoritesService,
   FavoritesServiceErrors,
-} from '../services/favorites.service';
-import { Pokemon } from '../../pokemons/schemas/pokemons.schema';
-import { UsersService } from '../services/users.service';
-import { PokemonPublicId } from '../../pokemons/validators/pokemons.validators';
+} from 'src/users/services/favorites.service';
+import { Pokemon } from 'src/pokemons/schemas/pokemons.schema';
+import { UsersService } from 'src/users/services/users.service';
+import { PokemonPublicId } from 'src/pokemons/validators/pokemons.validators';
 
 // Body of create favortie endpoint
 class CreateFavoriteDto extends PokemonPublicId {}

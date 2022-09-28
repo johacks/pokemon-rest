@@ -8,9 +8,12 @@ import {
   IsString,
   Matches,
 } from 'class-validator';
-import { POKEMON_ID_REGEX } from '../services/pokemons.service';
-import { PaginationParams } from '../../utils/pagination';
-import { PokemonType, PokemonTypes } from '../schemas/pokemons.schema';
+import { POKEMON_ID_REGEX } from 'src/pokemons/services/pokemons.service';
+import { PaginationParams } from 'src/utils/pagination';
+import {
+  PokemonType,
+  PokemonTypes,
+} from 'src/pokemons/schemas/pokemons.schema';
 import { Transform, Type } from 'class-transformer';
 
 export class PokemonPublicId {

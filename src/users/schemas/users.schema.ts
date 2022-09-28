@@ -1,7 +1,7 @@
 import * as mongoose from 'mongoose';
 import { Document } from 'mongoose';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Pokemon } from '../../pokemons/schemas/pokemons.schema';
+import { Pokemon } from 'src/pokemons/schemas/pokemons.schema';
 
 export type UserDocument = User &
   Document & { _id: mongoose.Schema.Types.ObjectId };

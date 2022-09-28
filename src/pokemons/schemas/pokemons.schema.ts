@@ -101,10 +101,10 @@ export class Pokemon {
   fleeRate: number;
 
   @Prop({ type: [mongoose.Schema.Types.ObjectId], ref: 'Pokemon' })
-  previousEvolutions: Pokemon[];
+  previousEvolutions: { name: string; pokemonId: number }[];
 
   @Prop({ type: [mongoose.Schema.Types.ObjectId], ref: 'Pokemon' })
-  evolutions: Pokemon[];
+  evolutions: { name: string; pokemonId: number }[];
 
   @Prop({ type: EvolutionRequirementsDescriptor })
   evolutionRequirements: EvolutionRequirements;
