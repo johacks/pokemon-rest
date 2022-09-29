@@ -31,21 +31,21 @@ export class FilterParams extends PaginationParams {
   @IsIn(PokemonTypes, { each: true })
   @Type(() => String)
   @Transform(({ value }) => value.split(','))
-  types: PokemonType[];
+  types?: PokemonType[];
 
   @IsOptional()
   @IsArray()
   @IsIn(PokemonTypes, { each: true })
   @Type(() => String)
   @Transform(({ value }) => value.split(','))
-  resistant: PokemonType[];
+  resistant?: PokemonType[];
 
   @IsOptional()
   @IsArray()
   @IsIn(PokemonTypes, { each: true })
   @Type(() => String)
   @Transform(({ value }) => value.split(','))
-  weaknesses: PokemonType[];
+  weaknesses?: PokemonType[];
 
   @IsOptional()
   @Type(() => Number)

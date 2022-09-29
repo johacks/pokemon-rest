@@ -107,7 +107,7 @@ export class Pokemon {
   evolutions: { name: string; pokemonId: number }[];
 
   @Prop({ type: EvolutionRequirementsDescriptor })
-  evolutionRequirements: EvolutionRequirements;
+  evolutionRequirements?: EvolutionRequirements;
 
   @Prop({ required: true })
   maxCP: number;
@@ -119,10 +119,10 @@ export class Pokemon {
   attacks: Attacks;
 
   @Prop()
-  commonCaptureArea: Region;
+  commonCaptureArea?: Region;
 
   @Prop()
-  pokemonClass: PokemonClass;
+  pokemonClass?: PokemonClass;
 }
 
 export const PokemonSchema = SchemaFactory.createForClass(Pokemon);
