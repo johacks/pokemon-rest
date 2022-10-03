@@ -1,6 +1,8 @@
 import { MongooseModuleFactoryOptions } from '@nestjs/mongoose';
 import { ConfigService } from '@nestjs/config';
 
+/* istanbul ignore file */
+
 export class DatabaseConfigManager {
   constructor(private configService?: ConfigService) {}
 

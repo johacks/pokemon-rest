@@ -24,9 +24,9 @@ export class DatabasePopulator {
 
   async cleanPopulate() {
     await this.clean();
-    await this.db.createCollection('attacks');
-    await this.db.createCollection('users');
-    await this.db.createCollection('pokemons');
+    await this.db.collection('attacks').findOne();
+    await this.db.collection('users').findOne();
+    await this.db.collection('pokemons').findOne();
 
     const pokemonsColl = this.db.collection('pokemons');
     const attacksColl = this.db.collection('attacks');
@@ -230,9 +230,16 @@ export class DatabasePopulator {
         },
       ])
       .toArray();
+
+    // Create indexes
+    await pokemonsColl.createIndexes([
+      { key: { pokemonId: 1 } },
+      { key: { name: 1 } },
+    ]);
   }
 }
 
+/* istanbul ignore next */
 async function main() {
   // Load env variables to process.env
   dotenv.config({ path: 'private.env' });
@@ -247,6 +254,7 @@ async function main() {
   exit();
 }
 
+/* istanbul ignore next */
 if (require.main === module) {
   main();
 }

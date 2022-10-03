@@ -16,6 +16,7 @@ import {
   PokemonType,
   PokemonTypes,
 } from 'src/pokemons/schemas/pokemons.schema';
+import { PaginatedItem } from 'src/utils/pagination';
 
 @Controller('pokemons')
 export class PokemonsController {
@@ -24,7 +25,7 @@ export class PokemonsController {
   @Get('/')
   async findAll(
     @Query(new ValidationPipe({ transform: true })) filterParams: FilterParams,
-  ): Promise<{ count: number; docs: Pokemon[] }> {
+  ): Promise<PaginatedItem<Pokemon>> {
     return this.pokemonsService.findAll(filterParams);
   }
 

@@ -19,7 +19,7 @@ describe('PokemonController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [{ provide: PokemonsService, useValue: pokemonServiceMock }],
+      providers: [{ provide: PokemonsService, useValue: pokemonServiceMock() }],
       controllers: [PokemonsController],
     }).compile();
 

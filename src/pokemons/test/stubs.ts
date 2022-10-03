@@ -1,7 +1,8 @@
 import { Pokemon, PokemonType } from 'src/pokemons/schemas/pokemons.schema';
 import { FilterParams } from 'src/pokemons/validators/pokemons.validators';
+import { sortBy, sortPokemonFields } from 'src/utils/generalfuncs';
 
-export const POKEMON_STUB: Pokemon = {
+export const POKEMON_STUB: Pokemon = sortPokemonFields({
   name: 'Seel',
   classification: 'Sea Lion Pokémon',
   types: [PokemonType.WATER],
@@ -66,7 +67,7 @@ export const POKEMON_STUB: Pokemon = {
   },
   pokemonId: 86,
   previousEvolutions: [],
-};
+});
 
 export const FILTER_PARAMS_STUB: FilterParams = {
   skip: 1,

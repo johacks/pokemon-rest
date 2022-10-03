@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Pokemon, PokemonDocument } from 'src/pokemons/schemas/pokemons.schema';
 import { FilterParams } from 'src/pokemons/validators/pokemons.validators';
+import { PaginatedItem } from 'src/utils/pagination';
 
 // We allow an id and name identification, e.g. id::001 or name::bulbasaur
 export const NAME_HEADER = 'name::';
@@ -37,7 +38,7 @@ export class PokemonsService {
   ) {}
 
   // Populate pokemon nested fields and select which fields to include
-  public static populateCleanQuery(q) {
+  static populateCleanQuery(q) {
     for (const populateOptions of pokemonPopulatedFields) {
       q.populate(populateOptions);
     }
@@ -45,10 +46,9 @@ export class PokemonsService {
   }
 
   // Get list of pokemon applying filters
-  async findAll(
-    filterParams: FilterParams,
-  ): Promise<{ count: number; docs: Pokemon[] }> {
-    const q = this.pokemonModel.find({
+  async findAll(filterParams: FilterParams): Promise<PaginatedItem<Pokemon>> {
+    const q = this.pokemonModel.find();
+    q.find({
       fleeRate: {
         $gte: filterParams.fleeRateLower ?? -Infinity,
         $lte: filterParams.fleeRateUpper ?? Infinity,
@@ -87,13 +87,13 @@ export class PokemonsService {
   }
 
   async findOne(pokemonPublicId: string): Promise<Pokemon> {
-    const q = this.pokemonModel.find(
+    const q = this.pokemonModel.findOne(
       PokemonsService.makeFilterByPublicId(pokemonPublicId),
     );
     return PokemonsService.populateCleanQuery(q).exec();
   }
 
-  public static makeFilterByPublicId(pokemonPublicId: string) {
+  static makeFilterByPublicId(pokemonPublicId: string) {
     if (pokemonPublicId.startsWith(NAME_HEADER)) {
       return { name: pokemonPublicId.substring(NAME_HEADER.length) };
     } else {
