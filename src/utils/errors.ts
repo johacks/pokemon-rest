@@ -3,6 +3,8 @@ import { PokemonTypes } from 'src/pokemons/schemas/pokemons.schema';
 // Doesnt detect execution of these functions
 /* istanbul ignore file */
 
+export type Maybe<V, E> = { value?: V; errors?: E | E[] };
+
 export const MUST_BE_NUMBER = (property) =>
   `${property} must be a number conforming to the specified constraints`;
 

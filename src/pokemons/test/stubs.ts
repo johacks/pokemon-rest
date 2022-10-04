@@ -1,6 +1,6 @@
 import { Pokemon, PokemonType } from 'src/pokemons/schemas/pokemons.schema';
 import { FilterParams } from 'src/pokemons/validators/pokemons.validators';
-import { sortBy, sortPokemonFields } from 'src/utils/generalfuncs';
+import { sortPokemonFields } from 'src/utils/generalfuncs';
 
 export const POKEMON_STUB: Pokemon = sortPokemonFields({
   name: 'Seel',

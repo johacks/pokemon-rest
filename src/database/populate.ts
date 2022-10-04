@@ -4,10 +4,11 @@ import { DatabaseConfigManager } from 'src/database/ormconfig';
 import * as mongoose from 'mongoose';
 import pokemons from 'data/pokemons.json';
 import { exit } from '@nestjs/cli/actions';
+import { sha256b64 } from 'src/utils/crypto';
 
 export class DatabasePopulator {
   private db: Db;
-  constructor(private conn: MongoClient) {
+  constructor(private conn: MongoClient, private cryptoSecret: string) {
     this.db = conn.db();
   }
 
@@ -231,6 +232,14 @@ export class DatabasePopulator {
       ])
       .toArray();
 
+    // Create sample username
+    await this.db.collection('users').insertOne({
+      userId: 'testUser',
+      visibleUsername: 'testUser',
+      pass: sha256b64('changeme' + this.cryptoSecret),
+      local: true,
+    });
+
     // Create indexes
     await pokemonsColl.createIndexes([
       { key: { pokemonId: 1 } },
@@ -248,7 +257,10 @@ async function main() {
     undefined,
   ).getConnectionParameters();
   const connection = await mongoose.connect(uri, connOptions);
-  const dbPop = new DatabasePopulator(connection.connection.getClient());
+  const dbPop = new DatabasePopulator(
+    connection.connection.getClient(),
+    process.env.CRYPTO_SECRET,
+  );
   await dbPop.cleanPopulate();
   console.log('Finished database population');
   exit();

@@ -4,6 +4,7 @@ import { Model } from 'mongoose';
 import { User, UserDocument } from 'src/users/schemas/users.schema';
 import { PokemonsService } from 'src/pokemons/services/pokemons.service';
 import { Pokemon, PokemonDocument } from 'src/pokemons/schemas/pokemons.schema';
+import { Maybe } from 'src/utils/errors';
 
 export enum FavoritesServiceErrors {
   USER_NOT_FOUND,
@@ -24,46 +25,46 @@ export class FavoritesService {
   async create(
     userId: string,
     pokemonPublicId: string,
-  ): Promise<{ pokemons?: Pokemon[]; error?: FavoritesServiceErrors }> {
+  ): Promise<Maybe<Pokemon[], FavoritesServiceErrors>> {
     // We need pokemon object to make public-private id association
-    const { user, pokemon, error } = await this.getUserAndPokemon(
-      userId,
-      pokemonPublicId,
-    );
-    if (error) return { error: error };
+    const {
+      value: { user, pokemon },
+      errors,
+    } = await this.getUserAndPokemon(userId, pokemonPublicId);
+    if (errors) return { errors: errors };
 
     if (user.favoritePokemons.includes(pokemon._id)) {
-      return { error: FavoritesServiceErrors.DUPLICATE_POKEMON };
+      return { errors: FavoritesServiceErrors.DUPLICATE_POKEMON };
     }
     user.favoritePokemons.push(pokemon._id);
     await user.save();
-    return { pokemons: await this.listFavorites(user) };
+    return { value: await this.listFavorites(user) };
   }
 
   async delete(
     userId: string,
     pokemonPublicId: string,
-  ): Promise<{ pokemons?: Pokemon[]; error?: FavoritesServiceErrors }> {
+  ): Promise<Maybe<Pokemon[], FavoritesServiceErrors>> {
     // We need pokemon object to make public-private id association
-    const { user, pokemon, error } = await this.getUserAndPokemon(
-      userId,
-      pokemonPublicId,
-    );
-    if (error) return { error: error };
+    const {
+      value: { user, pokemon },
+      errors,
+    } = await this.getUserAndPokemon(userId, pokemonPublicId);
+    if (errors) return { errors: errors };
 
     const idx = user.favoritePokemons.indexOf(pokemon._id);
-    if (idx < 0) return { error: FavoritesServiceErrors.POKEMON_NOT_FAVORITE };
+    if (idx < 0) return { errors: FavoritesServiceErrors.POKEMON_NOT_FAVORITE };
     user.favoritePokemons.splice(idx, 1);
     await user.save();
-    return { pokemons: await this.listFavorites(user) };
+    return { value: await this.listFavorites(user) };
   }
 
   async findAll(
     userId: string,
-  ): Promise<{ pokemons?: Pokemon[]; error?: FavoritesServiceErrors }> {
-    const user = await this.userModel.findOne({ _id: userId });
-    if (!user) return { error: FavoritesServiceErrors.USER_NOT_FOUND };
-    return { pokemons: await this.listFavorites(user) };
+  ): Promise<Maybe<Pokemon[], FavoritesServiceErrors>> {
+    const user = await this.userModel.findOne({ userId: userId });
+    if (!user) return { errors: FavoritesServiceErrors.USER_NOT_FOUND };
+    return { value: await this.listFavorites(user) };
   }
 
   // Some utility functions to avoid code repetition
@@ -78,18 +79,19 @@ export class FavoritesService {
   private async getUserAndPokemon(
     userId: string,
     pokemonPublicId: string,
-  ): Promise<{
-    user?: UserDocument;
-    pokemon?: PokemonDocument;
-    error?: FavoritesServiceErrors;
-  }> {
-    const user = await this.userModel.findOne({ _id: userId });
-    if (!user) return { error: FavoritesServiceErrors.USER_NOT_FOUND };
+  ): Promise<
+    Maybe<
+      { pokemon: PokemonDocument; user: UserDocument },
+      FavoritesServiceErrors
+    >
+  > {
+    const user = await this.userModel.findOne({ userId: userId });
+    if (!user) return { errors: FavoritesServiceErrors.USER_NOT_FOUND };
     const pokemon = await this.pokemonModel.findOne(
       PokemonsService.makeFilterByPublicId(pokemonPublicId),
     );
-    if (!pokemon) return { error: FavoritesServiceErrors.POKEMON_NOT_FOUND };
+    if (!pokemon) return { errors: FavoritesServiceErrors.POKEMON_NOT_FOUND };
     user.favoritePokemons = user?.favoritePokemons ?? [];
-    return { user: user, pokemon: pokemon };
+    return { value: { user: user, pokemon: pokemon } };
   }
 }

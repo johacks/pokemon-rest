@@ -8,6 +8,7 @@ import {
   Pokemon,
   PokemonSchema,
 } from './schemas/pokemons.schema';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [

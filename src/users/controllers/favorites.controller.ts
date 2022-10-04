@@ -8,14 +8,17 @@ import {
   NotFoundException,
   Param,
   Post,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import {
   FavoritesService,
   FavoritesServiceErrors,
 } from 'src/users/services/favorites.service';
 import { Pokemon } from 'src/pokemons/schemas/pokemons.schema';
-import { UsersService } from 'src/users/services/users.service';
 import { PokemonPublicId } from 'src/pokemons/validators/pokemons.validators';
+import { JwtAuthGuard } from 'src/auth/jwt-auth/jwt-auth.guard';
+import { IGetUserAuthInfoRequest } from 'src/utils/request';
 
 // Body of create favortie endpoint
 class CreateFavoriteDto extends PokemonPublicId {}
@@ -25,10 +28,7 @@ class DeleteParams extends CreateFavoriteDto {}
 @Controller('users/favorites')
 @Injectable()
 export class FavoritesController {
-  constructor(
-    private readonly favoritesService: FavoritesService,
-    private readonly usersService: UsersService,
-  ) {}
+  constructor(private readonly favoritesService: FavoritesService) {}
 
   private detectError(error) {
     if (error === FavoritesServiceErrors.USER_NOT_FOUND) {
@@ -42,35 +42,44 @@ export class FavoritesController {
     }
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('/')
   async create(
     @Body() createFavoriteDto: CreateFavoriteDto,
+    @Req() req,
   ): Promise<Pokemon[]> {
-    const userId = (await this.usersService.authenticate())._id;
-    const { pokemons, error } = await this.favoritesService.create(
+    const userId = req.user.userId;
+    const { value: pokemons, errors } = await this.favoritesService.create(
       userId,
       createFavoriteDto.id,
     );
-    this.detectError(error);
+    this.detectError(errors);
     return pokemons ?? [];
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete('/:id')
-  async delete(@Param() deleteParams: DeleteParams): Promise<Pokemon[]> {
-    const userId = (await this.usersService.authenticate())._id;
-    const { pokemons, error } = await this.favoritesService.delete(
+  async delete(
+    @Param() deleteParams: DeleteParams,
+    @Req() req,
+  ): Promise<Pokemon[]> {
+    const userId = req.user.userId;
+    const { value: pokemons, errors } = await this.favoritesService.delete(
       userId,
       deleteParams.id,
     );
-    this.detectError(error);
+    this.detectError(errors);
     return pokemons ?? [];
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('/')
-  async findAll(): Promise<Pokemon[]> {
-    const userId = (await this.usersService.authenticate())._id;
-    const { pokemons, error } = await this.favoritesService.findAll(userId);
-    this.detectError(error);
+  async findAll(@Req() req: IGetUserAuthInfoRequest): Promise<Pokemon[]> {
+    const userId = req.user.userId;
+    const { value: pokemons, errors } = await this.favoritesService.findAll(
+      userId,
+    );
+    this.detectError(errors);
     return pokemons ?? [];
   }
 }

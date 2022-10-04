@@ -2,13 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Pokemon, PokemonDocument } from 'src/pokemons/schemas/pokemons.schema';
-import { FilterParams } from 'src/pokemons/validators/pokemons.validators';
+import { FilterParams, ID_HEADER, NAME_HEADER } from 'src/pokemons/validators/pokemons.validators';
 import { PaginatedItem } from 'src/utils/pagination';
 
-// We allow an id and name identification, e.g. id::001 or name::bulbasaur
-export const NAME_HEADER = 'name::';
-export const ID_HEADER = 'id::';
-export const POKEMON_ID_REGEX = new RegExp(`${NAME_HEADER}|${ID_HEADER}[0-9]+`);
+
 
 // We populate the fields but try not to bloat with too much information
 // Client can request details if needed of the embedded entities.

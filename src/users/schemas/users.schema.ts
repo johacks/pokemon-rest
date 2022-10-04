@@ -8,11 +8,20 @@ export type UserDocument = User &
 
 @Schema()
 export class User {
-  @Prop({ required: true, unique: true })
-  email: string;
+  @Prop({ required: true, unique: true, dropDups: true })
+  userId: string;
 
-  @Prop({ type: [mongoose.Schema.Types.ObjectId], ref: 'Pokemon' })
-  favoritePokemons: Pokemon[];
+  @Prop()
+  pass?: string;
+
+  @Prop()
+  visibleUsername?: string;
+
+  @Prop({ required: true })
+  local: boolean;
+
+  @Prop({ type: [mongoose.Schema.Types.ObjectId], ref: 'Pokemon', default: [] })
+  favoritePokemons?: Pokemon[];
 }
 
 export const UsersSchema = SchemaFactory.createForClass(User);

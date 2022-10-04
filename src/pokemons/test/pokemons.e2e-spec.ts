@@ -2,12 +2,7 @@ import * as request from 'supertest';
 import { Test } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { PokemonsModule } from 'src/pokemons/pokemons.module';
-import {
-  ID_HEADER,
-  NAME_HEADER,
-  POKEMON_ID_REGEX,
-  PokemonsService,
-} from 'src/pokemons/services/pokemons.service';
+import { PokemonsService } from 'src/pokemons/services/pokemons.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { DatabaseConfigManager } from 'src/database/ormconfig';
 import { POKEMON_STUB } from 'src/pokemons/test/stubs';
@@ -27,15 +22,26 @@ import {
   MUST_BE_GREATER_OR_EQ,
   MUST_BE_POSITIVE,
 } from 'src/utils/errors';
+import {
+  ID_HEADER,
+  NAME_HEADER,
+  POKEMON_ID_REGEX,
+} from 'src/pokemons/validators/pokemons.validators';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 describe('Pokemons', () => {
   let app: INestApplication;
   let pokemonModel: Model<PokemonDocument>;
+  let configService: ConfigService;
 
   beforeAll(async () => {
     const module = await Test.createTestingModule({
       imports: [
         PokemonsModule,
+        ConfigModule.forRoot({
+          isGlobal: true,
+          envFilePath: ['private.env', '.env'],
+        }),
         MongooseModule.forRootAsync({
           useFactory: async () =>
             new DatabaseConfigManager().getConnectionParameters(true),
@@ -49,7 +55,11 @@ describe('Pokemons', () => {
     app.useGlobalPipes(new ValidationPipe());
     await app.init();
     pokemonModel = module.get<Model<PokemonDocument>>('PokemonModel');
-    await new DatabasePopulator(pokemonModel.db.getClient()).cleanPopulate();
+    configService = module.get<ConfigService>(ConfigService);
+    await new DatabasePopulator(
+      pokemonModel.db.getClient(),
+      configService.get('CRYPTO_SECRET'),
+    ).cleanPopulate();
   });
 
   describe(`/GET /pokemons`, () => {
