@@ -16,10 +16,12 @@ import {
   UsersService,
   UsersServiceErrors,
 } from 'src/users/services/users.service';
+import { ApiTags } from '@nestjs/swagger';
 
 export const USERNAME_COLLISION_ERR =
   'There is already a user with this username';
 
+@ApiTags('auth')
 @Controller('auth')
 export class LocalController {
   constructor(

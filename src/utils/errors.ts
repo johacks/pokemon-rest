@@ -1,7 +1,16 @@
 import { PokemonTypes } from 'src/pokemons/schemas/pokemons.schema';
+import { ApiProperty } from '@nestjs/swagger';
 
 // Doesnt detect execution of these functions
 /* istanbul ignore file */
+
+export class ErrorSchema {
+  @ApiProperty({ description: 'The http response status code' })
+  statusCode: number;
+
+  @ApiProperty({ description: 'The error description' })
+  message: string | string[];
+}
 
 export type Maybe<V, E> = { value?: V; errors?: E | E[] };
 

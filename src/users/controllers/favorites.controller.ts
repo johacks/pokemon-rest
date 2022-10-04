@@ -19,12 +19,41 @@ import { Pokemon } from 'src/pokemons/schemas/pokemons.schema';
 import { PokemonPublicId } from 'src/pokemons/validators/pokemons.validators';
 import { JwtAuthGuard } from 'src/auth/jwt-auth/jwt-auth.guard';
 import { IGetUserAuthInfoRequest } from 'src/utils/request';
+import {
+  ApiBody,
+  ApiCreatedResponse,
+  ApiProperty,
+  ApiResponse,
+  ApiTags,
+  PartialType,
+  PickType,
+} from '@nestjs/swagger';
 
 // Body of create favortie endpoint
-class CreateFavoriteDto extends PokemonPublicId {}
-// URL parameters of delete endpoint, right now
-class DeleteParams extends CreateFavoriteDto {}
+export const POKEMON_ID_SCHEMA = {
+  type: String,
+  description: 'either id::"pokemon number" or name::"pokemon name"',
+  examples: {
+    'by name': { value: 'name::Bulbasaur' },
+    'by id': { value: 'id::1' },
+  },
+};
+const POKEMON_ID_PROPERTY = {
+  ...POKEMON_ID_SCHEMA,
+  examples: [
+    POKEMON_ID_SCHEMA.examples['by id'].value,
+    POKEMON_ID_SCHEMA.examples['by name'].value,
+  ],
+};
 
+class CreateFavoriteDto extends PokemonPublicId {
+  @ApiProperty(POKEMON_ID_PROPERTY)
+  id: string;
+}
+// URL parameters of delete endpoint
+class DeleteParams extends PickType(CreateFavoriteDto, ['id'] as const) {}
+
+@ApiTags('users', 'pokemons')
 @Controller('users/favorites')
 @Injectable()
 export class FavoritesController {
@@ -42,6 +71,11 @@ export class FavoritesController {
     }
   }
 
+  @ApiBody({ type: CreateFavoriteDto })
+  @ApiCreatedResponse({
+    description: 'Correctly added new Pokemon to authenticated user favorites',
+    type: Pokemon,
+  })
   @UseGuards(JwtAuthGuard)
   @Post('/')
   async create(
